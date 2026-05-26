@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/* ─── VARIABLES ─────────────────────────────────────────── */
+:root {
+  --bg: #f5f5f7;
+  --fg: #1a1a1a;
+  --sidebar: #1e1e2e;
+  --panel: #16161e;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #3b82f6;
+}
+
+/* ─── LAYOUT LOCK (CSS puro, no Tailwind) ───────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-geist-sans), 'Inter', Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Next.js root div */
+body>div:first-child {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ─── CUSTOM SCROLLBAR ──────────────────────────────────── */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* ─── MONACO EDITOR ─────────────────────────────────────── */
+.monaco-editor {
+  padding-top: 8px;
+}
+
+/* ─── MAGIC UI ANIMATIONS ───────────────────────────────── */
+@keyframes spin-around {
+  0% {
+    transform: translateZ(0) rotate(0);
+  }
+
+  15%,
+  35% {
+    transform: translateZ(0) rotate(90deg);
+  }
+
+  65%,
+  85% {
+    transform: translateZ(0) rotate(270deg);
+  }
+
+  100% {
+    transform: translateZ(0) rotate(360deg);
+  }
+}
+
+@keyframes shimmer-slide {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes meteor {
+  0% {
+    transform: rotate(215deg) translateX(0);
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(215deg) translateX(-500px);
+    opacity: 0;
+  }
+}
+
+.animate-spin-around {
+  animation: spin-around calc(var(--speed, 3s) * 2) infinite linear;
+}
+
+.animate-shimmer-slide {
+  animation: shimmer-slide var(--speed, 3s) ease-in-out infinite alternate;
+}
+
+.animate-meteor {
+  animation: meteor var(--duration, 5s) var(--delay, 0s) ease-in-out infinite;
+}
