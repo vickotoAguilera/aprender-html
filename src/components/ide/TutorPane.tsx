@@ -8,16 +8,17 @@ import type { Step } from '@/types/steps';
 interface TutorPaneProps {
     code: string;
     currentStep: Step;
+    activeTrack: 'academic' | 'external';
 }
 
-export function TutorPane({ code, currentStep }: TutorPaneProps) {
+export function TutorPane({ code, currentStep, activeTrack }: TutorPaneProps) {
     const [analysis, setAnalysis] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const handleAnalyze = async () => {
         setLoading(true);
         setAnalysis(null);
-        const result = await analyzeCode(code, currentStep.title);
+        const result = await analyzeCode(code, currentStep.title, activeTrack);
         setAnalysis(result);
         setLoading(false);
     };

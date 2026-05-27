@@ -8,11 +8,15 @@ import { TutorialPane } from '@/components/ide/TutorialPane';
 import { TutorPane } from '@/components/ide/TutorPane';
 import { FloatingMentor } from '@/components/ide/FloatingMentor';
 import { GlossaryPane } from '@/components/ide/GlossaryPane';
-import { ACADEMIC_STEPS } from '@/types/steps';
+import { ACADEMIC_STEPS } from '@/data/modules/classRuta';
+import { EXTERNAL_STEPS } from '@/data/modules/externalRuta';
 
 export default function Home() {
   const [activeMode, setActiveMode] = useState<SidebarMode>('explorer');
-  const [currentStepId, setCurrentStepId] = useState<number>(ACADEMIC_STEPS[0].id);
+  const [activeTrack, setActiveTrack] = useState<'academic' | 'external'>('academic');
+  
+  const currentStepList = activeTrack === 'academic' ? ACADEMIC_STEPS : EXTERNAL_STEPS;
+  const [currentStepId, setCurrentStepId] = useState<number>(1);
 
   // Archivos dinámicos
   const [files, setFiles] = useState<UserFile[]>([]);
@@ -20,7 +24,7 @@ export default function Home() {
 
   // Helpers derivados
   const activeFile = files.find(f => f.id === activeFileId);
-  const currentStep = ACADEMIC_STEPS.find(s => s.id === currentStepId) || ACADEMIC_STEPS[0];
+  const currentStep = currentStepList.find(s => s.id === currentStepId) || currentStepList[0];
 
   const handleCreateFile = (name: string) => {
     const isCss = name.endsWith('.css');
@@ -40,14 +44,14 @@ export default function Home() {
   };
 
   const handleStepComplete = (nextStepId: number) => {
-    const nextStep = ACADEMIC_STEPS.find(s => s.id === nextStepId);
+    const nextStep = currentStepList.find(s => s.id === nextStepId);
     if (nextStep) {
       setCurrentStepId(nextStepId);
     }
   };
 
   const handleLoadTemplate = (stepId: number) => {
-    const targetStep = ACADEMIC_STEPS.find(s => s.id === stepId);
+    const targetStep = currentStepList.find(s => s.id === stepId);
     if (!targetStep) return;
 
     // Crear el archivo index.html
@@ -162,6 +166,9 @@ export default function Home() {
             currentStepId={currentStepId}
             onStepComplete={handleStepComplete}
             onLoadTemplate={handleLoadTemplate}
+            activeTrack={activeTrack}
+            setActiveTrack={(t) => { setActiveTrack(t); setCurrentStepId(1); }}
+            steps={currentStepList}
           />
         )}
         {activeMode === 'glossary' && <GlossaryPane />}
@@ -169,6 +176,7 @@ export default function Home() {
           <TutorPane
             code={activeFile?.content || ''}
             currentStep={currentStep}
+            activeTrack={activeTrack}
           />
         )}
       </div>
@@ -193,7 +201,12 @@ export default function Home() {
       </div>
 
       {/* Mentor Flotante Arrastrable */}
-      <FloatingMentor files={files} currentStepId={currentStepId} />
+      <FloatingMentor 
+        files={files} 
+        currentStepId={currentStepId} 
+        activeTrack={activeTrack}
+        currentStepDynamic={currentStep}
+      />
     </div>
   );
 }

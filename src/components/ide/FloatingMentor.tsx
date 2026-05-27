@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Minus, Cross, GripHorizontal, Sparkles, Check, ChevronRight, X } from 'lucide-react';
 import type { UserFile } from './ActivityBar';
+import type { Step } from '@/types/steps';
 
 interface MentorStep {
     id: number;
@@ -185,9 +186,11 @@ const MENTOR_STEPS: MentorStep[] = [
 interface FloatingMentorProps {
     files: UserFile[];
     currentStepId: number;
+    activeTrack: 'academic' | 'external';
+    currentStepDynamic: Step;
 }
 
-export function FloatingMentor({ files, currentStepId }: FloatingMentorProps) {
+export function FloatingMentor({ files, currentStepId, activeTrack, currentStepDynamic }: FloatingMentorProps) {
     // Estado de UI
     const [minimized, setMinimized] = useState(false);
     const [position, setPosition] = useState({ x: 20, y: 20 });
@@ -246,7 +249,8 @@ export function FloatingMentor({ files, currentStepId }: FloatingMentorProps) {
         }
     };
 
-    const step = MENTOR_STEPS[currentStepIndex];
+    const isAcademic = activeTrack === 'academic';
+    const step = isAcademic ? MENTOR_STEPS[currentStepIndex] || MENTOR_STEPS[0] : null;
 
     return (
         <div
@@ -287,7 +291,7 @@ export function FloatingMentor({ files, currentStepId }: FloatingMentorProps) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Sparkles size={14} color="#8b5cf6" />
                     <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e7eb', userSelect: 'none' }}>
-                        Mentor Interactivo
+                        {isAcademic ? "Mentor Interactivo" : "Guía de Retos"}
                     </span>
                 </div>
 
@@ -310,15 +314,15 @@ export function FloatingMentor({ files, currentStepId }: FloatingMentorProps) {
                             width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #8b5cf6)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 'bold', color: 'white', fontSize: '12px'
                         }}>
-                            {currentStepIndex + 1}/{MENTOR_STEPS.length}
+                            {isAcademic ? currentStepIndex + 1 : currentStepDynamic.id}
                         </div>
                         <p style={{ margin: 0, fontSize: '13px', color: '#d1d5db', lineHeight: '1.5' }}>
-                            {step.message}
+                            {isAcademic ? step?.message : currentStepDynamic.description}
                         </p>
                     </div>
 
                     {/* Verification Feedback Modal */}
-                    {verificationFeedback && (
+                    {isAcademic && verificationFeedback && (
                         <div style={{
                             padding: '10px 12px',
                             borderRadius: '8px',
@@ -337,7 +341,7 @@ export function FloatingMentor({ files, currentStepId }: FloatingMentorProps) {
 
                     {/* Acciones */}
                     <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                        {(!verificationFeedback || !verificationFeedback.success) && (
+                        {isAcademic && (!verificationFeedback || !verificationFeedback.success) && (
                             <button
                                 onClick={handleVerify}
                                 style={{
@@ -349,7 +353,7 @@ export function FloatingMentor({ files, currentStepId }: FloatingMentorProps) {
                             </button>
                         )}
 
-                        {verificationFeedback?.success && currentStepIndex < MENTOR_STEPS.length - 1 && (
+                        {isAcademic && verificationFeedback?.success && currentStepIndex < MENTOR_STEPS.length - 1 && (
                             <button
                                 onClick={handleNext}
                                 style={{
@@ -361,9 +365,15 @@ export function FloatingMentor({ files, currentStepId }: FloatingMentorProps) {
                             </button>
                         )}
 
-                        {verificationFeedback?.success && currentStepIndex === MENTOR_STEPS.length - 1 && (
+                        {isAcademic && verificationFeedback?.success && currentStepIndex === MENTOR_STEPS.length - 1 && (
                             <div style={{ flex: 1, textAlign: 'center', fontSize: '13px', color: '#10b981', fontWeight: 'bold' }}>
                                 ¡Has completado este módulo! 🎉
+                            </div>
+                        )}
+                        
+                        {!isAcademic && (
+                            <div style={{ flex: 1, textAlign: 'center', fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
+                                💡 Usa el panel de Tutor IA.
                             </div>
                         )}
                     </div>

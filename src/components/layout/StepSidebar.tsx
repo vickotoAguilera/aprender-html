@@ -1,5 +1,6 @@
 import React from 'react';
-import { ACADEMIC_STEPS, Step } from '@/types/steps';
+import { Step } from '@/types/steps';
+import { ACADEMIC_STEPS } from '@/data/modules/classRuta';
 import { cn } from '@/lib/utils';
 import { BookOpen, Box, Move, Accessibility, LucideIcon } from 'lucide-react';
 import { Meteors } from '@/components/magicui/meteors';

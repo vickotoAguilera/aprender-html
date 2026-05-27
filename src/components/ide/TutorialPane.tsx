@@ -1,16 +1,19 @@
 import React from 'react';
 import { BookOpen, Info, CheckCircle, ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import { ACADEMIC_STEPS } from '@/types/steps';
+import { Step } from '@/types/steps';
 
 interface TutorialPaneProps {
     currentStepId: number;
     onStepComplete: (id: number) => void;
     onLoadTemplate: (id: number) => void;
+    activeTrack: 'academic' | 'external';
+    setActiveTrack: (track: 'academic' | 'external') => void;
+    steps: Step[];
 }
 
-export function TutorialPane({ currentStepId, onStepComplete, onLoadTemplate }: TutorialPaneProps) {
-    const currentStepIndex = ACADEMIC_STEPS.findIndex(s => s.id === currentStepId);
-    const currentStep = ACADEMIC_STEPS[currentStepIndex] || ACADEMIC_STEPS[0];
+export function TutorialPane({ currentStepId, onStepComplete, onLoadTemplate, activeTrack, setActiveTrack, steps }: TutorialPaneProps) {
+    const currentStepIndex = steps.findIndex(s => s.id === currentStepId);
+    const currentStep = steps[currentStepIndex] || steps[0];
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', color: '#d1d5db', overflowY: 'auto' }} className="custom-scrollbar">
@@ -21,9 +24,20 @@ export function TutorialPane({ currentStepId, onStepComplete, onLoadTemplate }: 
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 color: '#9ca3af',
-                borderBottom: '1px solid rgba(255,255,255,0.06)'
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
             }}>
-                Currículo: Portfolio Personal
+                <span>Módulo Activo</span>
+                <select 
+                  value={activeTrack} 
+                  onChange={(e) => setActiveTrack(e.target.value as 'academic' | 'external')}
+                  style={{ background: '#181818', color: '#fff', border: '1px solid #3b82f6', borderRadius: '4px', padding: '2px 4px', fontSize: '10px' }}
+                >
+                  <option value="academic">Clases</option>
+                  <option value="external">Retos Extra</option>
+                </select>
             </div>
 
             <div style={{ padding: '20px' }}>
@@ -34,7 +48,7 @@ export function TutorialPane({ currentStepId, onStepComplete, onLoadTemplate }: 
                     gap: '8px',
                     marginBottom: '24px'
                 }}>
-                    {ACADEMIC_STEPS.map((step) => (
+                    {steps.map((step) => (
                         <button
                             key={step.id}
                             onClick={() => onLoadTemplate(step.id)}
@@ -112,7 +126,7 @@ export function TutorialPane({ currentStepId, onStepComplete, onLoadTemplate }: 
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                     <button
                         disabled={currentStepIndex === 0}
-                        onClick={() => onLoadTemplate(ACADEMIC_STEPS[currentStepIndex - 1].id)}
+                        onClick={() => onLoadTemplate(steps[currentStepIndex - 1].id)}
                         style={{
                             flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
                             background: 'none', color: '#9ca3af', cursor: currentStepIndex === 0 ? 'not-allowed' : 'pointer',
@@ -122,11 +136,11 @@ export function TutorialPane({ currentStepId, onStepComplete, onLoadTemplate }: 
                         <ChevronLeft size={14} /> Anterior
                     </button>
                     <button
-                        disabled={currentStepIndex === ACADEMIC_STEPS.length - 1}
-                        onClick={() => onLoadTemplate(ACADEMIC_STEPS[currentStepIndex + 1].id)}
+                        disabled={currentStepIndex === steps.length - 1}
+                        onClick={() => onLoadTemplate(steps[currentStepIndex + 1].id)}
                         style={{
                             flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
-                            background: 'none', color: '#9ca3af', cursor: currentStepIndex === ACADEMIC_STEPS.length - 1 ? 'not-allowed' : 'pointer',
+                            background: 'none', color: '#9ca3af', cursor: currentStepIndex === steps.length - 1 ? 'not-allowed' : 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px'
                         }}
                     >
