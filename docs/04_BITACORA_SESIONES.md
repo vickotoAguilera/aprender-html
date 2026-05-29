@@ -61,3 +61,19 @@
 - **Traspaso:** Se actualizó la sesión indicando inicio en PC Casa.
 - **Corrección de Editor:** Se eliminó el archivo `index.html` precargado (`INITIAL_HTML`) en `page.tsx`. Ahora el IDE carga en blanco, para que el usuario cumpla correctamente la primera misión del Mentor.
 - **Tutor con Consciencia de Líneas:** Se ajustaron las misiones en `FloatingMentor.tsx` indicando posiciones exactas de línea. Se actualizó `groqClient.ts` para inyectar un prefijo de número a cada línea de código (ej. `1: <!DOCTYPE html>`) y se instruyó al modelo a guiar al estudiante indicándole exactamente qué insertar o corregir en cada número de línea.
+
+## [2026-05-29] - Implementación Módulo "Estudia para prueba"
+**Hora:** 03:25 PM
+**Agente:** Antigravity
+**PC:** Trabajo
+
+### Avances
+- **Módulo de Reto**: Creación del espacio "Estudia para prueba" con el proyecto de referencia "Perro Waton".
+- **Instructor Senior**: Configuración de `groqClient.ts` con una nueva personalidad de mentor senior que explica comandos CSS y su relación con el HTML línea por línea.
+- **Activos**: Sincronización de imágenes del proyecto aterrizadas en `public/img/perro-waton`.
+- **UX Editor**: Activación de `colorDecorators` en Monaco para previsualización de colores hexadecimales.
+- **Tipado**: Refactorización de componentes (`TutorialPane`, `FloatingMentor`, `TutorPane`) para soportar la nueva ruta de navegación de forma segura.
+
+### Notas
+- Se detectó que PowerShell no acepta `&&`, se corrigieron los comandos de sistema.
+- El proyecto está listo para su uso inmediato en el entorno de desarrollo.

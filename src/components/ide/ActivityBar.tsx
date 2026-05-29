@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Files, BookOpen, Sparkles, Plus, FileCode, Check, AlertCircle, Book } from 'lucide-react';
+import { Files, BookOpen, Sparkles, Plus, FileCode, Check, AlertCircle, Book, ImagePlus, Download, Upload } from 'lucide-react';
 
 export type SidebarMode = 'explorer' | 'tutorial' | 'tutor' | 'glossary';
 
@@ -10,6 +10,7 @@ export type UserFile = {
     name: string;
     content: string;
     language: 'html' | 'css' | 'javascript';
+    type?: 'text' | 'image';
 };
 
 interface ActivityBarProps {
@@ -70,6 +71,10 @@ export function ActivityBar({ activeMode, onSelectMode }: ActivityBarProps) {
                     )}
                 </button>
             ))}
+
+            <div style={{ marginTop: 'auto', marginBottom: '16px' }}>
+                {/* Espacio para botones de configuración o usuario si se desea */}
+            </div>
         </div>
     );
 }
@@ -79,9 +84,20 @@ interface ExplorerProps {
     activeFileId: string;
     onSelectFile: (id: string) => void;
     onCreateFile: (name: string) => void;
+    onUploadImage: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onDownloadProject: () => void;
+    onImportProject: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function ExplorerPane({ files, activeFileId, onSelectFile, onCreateFile }: ExplorerProps) {
+export function ExplorerPane({
+    files,
+    activeFileId,
+    onSelectFile,
+    onCreateFile,
+    onUploadImage,
+    onDownloadProject,
+    onImportProject
+}: ExplorerProps) {
     const [isCreating, setIsCreating] = useState(false);
     const [newFileName, setNewFileName] = useState('');
     const [validationTip, setValidationTip] = useState<{ type: 'error' | 'success', msg: string } | null>(null);
@@ -130,13 +146,19 @@ export function ExplorerPane({ files, activeFileId, onSelectFile, onCreateFile }
                 justifyContent: 'space-between'
             }}>
                 Explorador
-                <button
-                    onClick={() => setIsCreating(true)}
-                    title="Nuevo Archivo"
-                    style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '4px' }}
-                >
-                    <Plus size={14} />
-                </button>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                    <button
+                        onClick={() => setIsCreating(true)}
+                        title="Nuevo Archivo"
+                        style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '4px' }}
+                    >
+                        <Plus size={14} />
+                    </button>
+                    <label style={{ cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }} title="Subir Imagen">
+                        <ImagePlus size={14} color="#9ca3af" />
+                        <input type="file" onChange={onUploadImage} accept="image/*" style={{ display: 'none' }} />
+                    </label>
+                </div>
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -197,10 +219,33 @@ export function ExplorerPane({ files, activeFileId, onSelectFile, onCreateFile }
                             userSelect: 'none'
                         }}
                     >
-                        <FileCode size={14} color={file.name.endsWith('.html') ? '#e34f26' : '#264de4'} />
+                        <FileCode size={14} color={file.type === 'image' ? '#10b981' : file.name.endsWith('.html') ? '#e34f26' : '#264de4'} />
                         {file.name}
                     </div>
                 ))}
+            </div>
+
+            {/* Herramientas Inferiores */}
+            <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button
+                    onClick={onDownloadProject}
+                    style={{
+                        width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(59, 130, 246, 0.1)',
+                        border: '1px solid rgba(59, 130, 246, 0.2)', color: '#60a5fa', fontSize: '11px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer'
+                    }}
+                >
+                    <Download size={14} /> Exportar ZIP
+                </button>
+
+                <label style={{
+                    width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.05)', color: '#9ca3af', fontSize: '11px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer'
+                }}>
+                    <Upload size={14} /> Importar Proyecto
+                    <input type="file" onChange={onImportProject} accept=".zip" style={{ display: 'none' }} />
+                </label>
             </div>
         </div>
     );

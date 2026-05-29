@@ -8,7 +8,7 @@ import type { Step } from '@/types/steps';
 interface TutorPaneProps {
     code: string;
     currentStep: Step;
-    activeTrack: 'academic' | 'external';
+    activeTrack: 'academic' | 'external' | 'study';
 }
 
 export function TutorPane({ code, currentStep, activeTrack }: TutorPaneProps) {

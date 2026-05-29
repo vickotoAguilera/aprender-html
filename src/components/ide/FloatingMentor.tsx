@@ -1,218 +1,61 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Minus, Cross, GripHorizontal, Sparkles, Check, ChevronRight, X } from 'lucide-react';
+import { Minus, GripHorizontal, Sparkles, Check, ChevronRight, X, Send, Loader2, ChevronLeft } from 'lucide-react';
+import { chatWithMentor } from '@/services/groqClient';
 import type { UserFile } from './ActivityBar';
 import type { Step } from '@/types/steps';
 
-interface MentorStep {
-    id: number;
-    message: string;
-    expectedToken?: string; // palabra clave o regex que esperamos ver
-    verifyFunction?: (files: UserFile[]) => { success: boolean; feedback: string };
-}
-
-// Pasos educativos interactivos
-const MENTOR_STEPS: MentorStep[] = [
-    {
-        id: 1,
-        message: "¡Hola! Vamos a construir tu Portfolio. Empieza creando el archivo index.html en el Explorador.",
-        verifyFunction: (files) => {
-            const hasIndex = files.some(f => f.name.toLowerCase() === 'index.html');
-            if (hasIndex) return { success: true, feedback: '¡Excelente! El primer paso de todo desarrollador.' };
-            return { success: false, feedback: 'Aún no veo el archivo index.html.' };
-        }
-    },
-    {
-        id: 2,
-        message: "Agrega la estructura base obligatoria: <!DOCTYPE html>, <html>, <head> y <body>. ¡Es MUY importante que cierres </body> y </html> al final!",
-        verifyFunction: (files) => {
-            const htmlFile = files.find(f => f.name === 'index.html');
-            if (!htmlFile) return { success: false, feedback: 'Crea el archivo index.html primero.' };
-
-            const content = htmlFile.content.toLowerCase();
-            const hasDoctype = content.includes('<!doctype html>');
-            const hasHtml = /<html[^>]*>/.test(content);
-            const hasHead = /<head[^>]*>/.test(content);
-            const hasBody = /<body[^>]*>/.test(content);
-            const hasBodyClose = content.includes('</body>');
-            const hasHtmlClose = content.includes('</html>');
-
-            if (hasDoctype && hasHtml && hasHead && hasBody && hasBodyClose && hasHtmlClose) {
-                return { success: true, feedback: '¡Perfecto! Tienes los cimientos y el cierre correcto.' };
-            }
-            return { success: false, feedback: 'Estructura incompleta. Revisa que estén: <!DOCTYPE html>, <html>, <head>, <body> y cerrados con </body>, </html>.' };
-        }
-    },
-    {
-        id: 3,
-        message: "Dentro del <body>, agrega un encabezado semántico con la etiqueta <header> y dentro pon tu nombre en un <h1>.",
-        verifyFunction: (files) => {
-            const htmlFile = files.find(f => f.name === 'index.html');
-            if (!htmlFile) return { success: false, feedback: '' };
-
-            const content = htmlFile.content;
-            const hasHeader = /<header[^>]*>/.test(content) && /<\/header>/.test(content);
-            const hasH1 = /<h1[^>]*>/.test(content) && /<\/h1>/.test(content);
-
-            if (hasHeader && hasH1) {
-                return { success: true, feedback: '¡Muy bien! Las etiquetas semánticas como <header> mejoran tu sitio.' };
-            }
-            if (!hasHeader) return { success: false, feedback: 'Falta abrir y cerrar la etiqueta <header>.' };
-            return { success: false, feedback: 'Veo el <header>, pero falta la etiqueta <h1> con tu nombre.' };
-        }
-    },
-    {
-        id: 4,
-        message: "Crea la sección de proyectos: Usa <section id=\"proyectos\"> y dentro agrega un título con <h2>.",
-        verifyFunction: (files) => {
-            const htmlFile = files.find(f => f.name === 'index.html');
-            if (!htmlFile) return { success: false, feedback: '' };
-
-            const content = htmlFile.content;
-            const hasSectionId = /<section\s+id=["']proyectos["'][^>]*>/.test(content);
-            const hasH2 = /<h2[^>]*>/.test(content);
-
-            if (hasSectionId && hasH2) {
-                return { success: true, feedback: '¡Genial! Los atributos como id nos ayudan a identificar secciones únicas.' };
-            }
-            if (!hasSectionId) return { success: false, feedback: 'Asegúrate de agregar <section id="proyectos">.' };
-            return { success: false, feedback: 'Agregaste la sección, pero falta el título <h2>.' };
-        }
-    },
-    {
-        id: 5,
-        message: "Agrega tus proyectos. Crea una lista desordenada <ul> y pon al menos 3 proyectos como elementos (<li>).",
-        verifyFunction: (files) => {
-            const htmlFile = files.find(f => f.name === 'index.html');
-            if (!htmlFile) return { success: false, feedback: '' };
-
-            const content = htmlFile.content;
-            const hasUl = /<ul[^>]*>/.test(content) && /<\/ul>/.test(content);
-            const liCount = (content.match(/<li[^>]*>/gi) || []).length;
-
-            if (hasUl && liCount >= 3) {
-                return { success: true, feedback: '¡Impresionante! Usar listas hace que el contenido se lea mucho mejor.' };
-            }
-            if (!hasUl) return { success: false, feedback: 'Falta la etiqueta <ul> para iniciar la lista.' };
-            return { success: false, feedback: `Tienes la lista, pero solo veo ${liCount} etiquetas <li>. ¡Tienen que ser al menos 3!` };
-        }
-    },
-    {
-        id: 6,
-        message: "Haz tu Portfolio más personal. Agrega una etiqueta <img> con tu foto. ¡No olvides el atributo 'alt' requerido por accesibilidad!",
-        verifyFunction: (files) => {
-            const htmlFile = files.find(f => f.name === 'index.html');
-            if (!htmlFile) return { success: false, feedback: '' };
-
-            const content = htmlFile.content;
-            const hasImg = /<img[^>]*>/i.test(content);
-            const hasAlt = /<img[^>]*alt=["'][^"']*["'][^>]*>/i.test(content);
-
-            if (hasAlt) return { success: true, feedback: '¡Perfecto! Un buen desarrollador siempre piensa en la accesibilidad web (A11y).' };
-            if (hasImg) return { success: false, feedback: 'Bien, pusiste la imagen, pero te falta agregar el atributo alt="...".' };
-            return { success: false, feedback: 'Falta agregar la etiqueta <img>.' };
-        }
-    },
-    {
-        id: 7,
-        message: "Crea un formulario para que te contacten. Usa la etiqueta <form> e incluye dentro un botón de envío con <button>.",
-        verifyFunction: (files) => {
-            const htmlFile = files.find(f => f.name === 'index.html');
-            if (!htmlFile) return { success: false, feedback: '' };
-
-            const content = htmlFile.content;
-            const hasForm = /<form[^>]*>/.test(content);
-            const hasButton = /<button[^>]*>/.test(content);
-
-            if (hasForm && hasButton) return { success: true, feedback: '¡Listo! Las etiquetas <form> recogen la interacción del usuario.' };
-            if (!hasForm) return { success: false, feedback: 'Falta abrir la etiqueta <form>.' };
-            return { success: false, feedback: 'Tienes el formulario, pero te falta un <button> para enviarlo.' };
-        }
-    },
-    {
-        id: 8,
-        message: "¡Hora de diseño! Crea el archivo estilo.css y en index.html agrégalo dentro de <head> usando la etiqueta <link rel=\"stylesheet\" href=\"estilo.css\">.",
-        verifyFunction: (files) => {
-            const hasCss = files.some(f => f.name === 'estilo.css');
-            const htmlFile = files.find(f => f.name === 'index.html');
-
-            if (!hasCss) return { success: false, feedback: 'Primero debes crear el archivo estilo.css en el Explorador.' };
-
-            const content = htmlFile?.content || '';
-            const hasLink = /<link[^>]*href=["']\/?estilo\.css["'][^>]*>/i.test(content);
-
-            if (hasLink) return { success: true, feedback: '¡Conectado! Has separado correctamente el contenido (HTML) de la presentación (CSS).' };
-            return { success: false, feedback: 'Veo el archivo CSS, pero no lo has enlazado correctamente con <link> en el <head>.' };
-        }
-    },
-    {
-        id: 9,
-        message: "Agrega interactividad: Crea app.js. Luego, en index.html, cárgalo justo ANTES de cerrar el </body> con <script src=\"app.js\"></script>.",
-        verifyFunction: (files) => {
-            const hasJs = files.some(f => f.name === 'app.js');
-            const htmlFile = files.find(f => f.name === 'index.html');
-
-            if (!hasJs) return { success: false, feedback: 'Debes crear el archivo app.js en el Explorador.' };
-
-            const content = htmlFile?.content || '';
-            const hasScript = /<script[^>]*src=["']\/?app\.js["'][^>]*>/i.test(content);
-
-            if (hasScript) return { success: true, feedback: '¡Excelente! Los scripts al final del body aseguran que todo el sitio cargue primero antes de leer el JS.' };
-            return { success: false, feedback: 'Veo app.js, pero falta cargarlo en el HTML usando la etiqueta <script src="app.js">.' };
-        }
-    },
-    {
-        id: 10,
-        message: "En app.js, escribe código de interactividad, como un event listener (recomendado) para filtrar algo, o un onclick en algún botón.",
-        verifyFunction: (files) => {
-            const jsFile = files.find(f => f.name === 'app.js');
-            if (!jsFile) return { success: false, feedback: 'No encuentro tu archivo app.js.' };
-
-            const content = jsFile.content;
-            const hasAction = content.includes('addEventListener') || content.includes('onclick') || content.includes('.style.');
-
-            if (hasAction) {
-                return { success: true, feedback: '¡FELICIDADES! Has integrado HTML Semántico, CSS y Manipulación del DOM en JS. Tu base está completa. 🎉' };
-            }
-            return { success: false, feedback: 'Tu app.js está muy vacío. Usa addEventListener, o modifica elementos del DOM usando document.querySelector.' };
-        }
-    }
-];
-
-
-
-
 interface FloatingMentorProps {
-    files: UserFile[];
+    currentTrack: 'academic' | 'external' | 'study';
     currentStepId: number;
-    activeTrack: 'academic' | 'external';
-    currentStepDynamic: Step;
+    onNextStep: () => void;
+    onPrevStep: () => void;
+    onCompleteStep: () => void;
+    onLoadTemplate?: () => void;
+    currentStepData: Step;
 }
 
-export function FloatingMentor({ files, currentStepId, activeTrack, currentStepDynamic }: FloatingMentorProps) {
+interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
+
+export function FloatingMentor({
+    currentTrack,
+    currentStepId,
+    onNextStep,
+    onPrevStep,
+    onCompleteStep,
+    onLoadTemplate,
+    currentStepData
+}: FloatingMentorProps) {
     // Estado de UI
     const [minimized, setMinimized] = useState(false);
-    const [position, setPosition] = useState({ x: 20, y: 20 });
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [size, setSize] = useState({ width: 340, height: 500 });
+    const [showInstructions, setShowInstructions] = useState(true);
 
-    // Estado del tutor
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [verificationFeedback, setVerificationFeedback] = useState<{ success: boolean, msg: string } | null>(null);
+    // Estado del Chat
+    const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+    const [chatInput, setChatInput] = useState('');
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const chatEndRef = useRef<HTMLDivElement>(null);
 
-    // Sincronizar con el paso actual del tutorial principal
+    const scrollToBottom = () => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
     useEffect(() => {
-        if (currentStepId > 0 && currentStepId <= MENTOR_STEPS.length) {
-            setCurrentStepIndex(currentStepId - 1);
-            setVerificationFeedback(null);
-        }
-    }, [currentStepId]);
+        scrollToBottom();
+    }, [chatHistory]);
 
-    // Drag logic
+    // Drag logic (Mover ventana)
     const isDragging = useRef(false);
     const dragStart = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
-        setPosition({ x: window.innerWidth - 380, y: window.innerHeight - 300 });
+        setPosition({ x: window.innerWidth - 380, y: window.innerHeight - 550 });
     }, []);
 
     const handlePointerDown = (e: React.PointerEvent) => {
@@ -221,36 +64,60 @@ export function FloatingMentor({ files, currentStepId, activeTrack, currentStepD
         (e.target as HTMLElement).setPointerCapture(e.pointerId);
     };
 
-    const handlePointerMove = (e: React.PointerEvent) => {
-        if (!isDragging.current) return;
-        setPosition({
-            x: e.clientX - dragStart.current.x,
-            y: e.clientY - dragStart.current.y
-        });
-    };
-
     const handlePointerUp = (e: React.PointerEvent) => {
         isDragging.current = false;
+        isResizing.current = false;
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     };
 
-    const handleVerify = () => {
-        const step = MENTOR_STEPS[currentStepIndex];
-        if (step.verifyFunction) {
-            const result = step.verifyFunction(files);
-            setVerificationFeedback({ success: result.success, msg: result.feedback });
+    // Resize logic (Cambiar tamaño)
+    const isResizing = useRef(false);
+    const resizeStart = useRef({ width: 0, height: 0, x: 0, y: 0 });
+
+    const handleResizeDown = (e: React.PointerEvent) => {
+        e.stopPropagation();
+        isResizing.current = true;
+        resizeStart.current = { width: size.width, height: size.height, x: e.clientX, y: e.clientY };
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    };
+
+    const handleGlobalPointerMove = (e: React.PointerEvent) => {
+        if (isDragging.current) {
+            setPosition({
+                x: e.clientX - dragStart.current.x,
+                y: e.clientY - dragStart.current.y
+            });
+        } else if (isResizing.current) {
+            const deltaX = e.clientX - resizeStart.current.x;
+            const deltaY = e.clientY - resizeStart.current.y;
+            setSize({
+                width: Math.max(300, resizeStart.current.width + deltaX),
+                height: Math.max(200, resizeStart.current.height + deltaY)
+            });
         }
     };
 
-    const handleNext = () => {
-        if (currentStepIndex < MENTOR_STEPS.length - 1) {
-            setCurrentStepIndex(currentStepIndex + 1);
-            setVerificationFeedback(null);
+    const handleSendMessage = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!chatInput.trim() || isChatLoading) return;
+
+        const userMsg = chatInput.trim();
+        setChatInput('');
+        const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: userMsg }];
+        setChatHistory(newHistory);
+        setIsChatLoading(true);
+
+        try {
+            const response = await chatWithMentor(newHistory, "Contexto activo", currentTrack);
+            setChatHistory([...newHistory, { role: 'assistant', content: response }]);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsChatLoading(false);
         }
     };
 
-    const isAcademic = activeTrack === 'academic';
-    const step = isAcademic ? MENTOR_STEPS[currentStepIndex] || MENTOR_STEPS[0] : null;
+    const mentorTitle = currentTrack === 'study' ? "Instructor Senior" : "Mentor Pro";
 
     return (
         <div
@@ -258,23 +125,24 @@ export function FloatingMentor({ files, currentStepId, activeTrack, currentStepD
                 position: 'fixed',
                 left: position.x,
                 top: position.y,
-                width: minimized ? '250px' : '340px',
-                backgroundColor: '#16161ebd', // semi transp
+                width: minimized ? '250px' : `${size.width}px`,
+                height: minimized ? 'auto' : `${size.height}px`,
+                backgroundColor: 'rgba(22, 22, 30, 0.95)',
                 backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
                 borderRadius: '12px',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-                zIndex: 9999, // Arriba de todo
+                zIndex: 9999,
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
-                transition: 'width 0.3s, height 0.3s',
+                transition: minimized ? 'width 0.3s' : 'none',
             }}
+            onPointerMove={handleGlobalPointerMove}
         >
-            {/* Barra superior / Drag Handle */}
+            {/* BARRA SUPERIOR (Drag handle) */}
             <div
                 onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 style={{
                     padding: '10px 14px',
@@ -284,99 +152,182 @@ export function FloatingMentor({ files, currentStepId, activeTrack, currentStepD
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    touchAction: 'none' // Prevenir scroll nativo en mobile
+                    touchAction: 'none'
                 }}
-                onPointerCancel={handlePointerUp}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Sparkles size={14} color="#8b5cf6" />
+                    <Sparkles size={14} color="#10b981" />
                     <span style={{ fontSize: '12px', fontWeight: 700, color: '#e5e7eb', userSelect: 'none' }}>
-                        {isAcademic ? "Mentor Interactivo" : "Guía de Retos"}
+                        {mentorTitle}
                     </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                        onClick={() => setShowInstructions(!showInstructions)}
+                        style={{
+                            background: showInstructions ? '#3b82f6' : 'rgba(255,255,255,0.1)',
+                            border: 'none',
+                            color: 'white',
+                            borderRadius: '4px',
+                            padding: '2px 10px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            fontWeight: 700
+                        }}
+                    >
+                        {showInstructions ? 'CHAT' : 'MISIÓN'}
+                    </button>
                     <button
                         onClick={() => setMinimized(!minimized)}
-                        style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '4px' }}
+                        style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}
                     >
                         {minimized ? <GripHorizontal size={14} /> : <Minus size={14} />}
                     </button>
                 </div>
             </div>
 
-            {/* Contenido (oculto si minimizado) */}
+            {/* CONTENIDO principal */}
             {!minimized && (
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, minHeight: 0 }}>
 
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                    {showInstructions ? (
                         <div style={{
-                            width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #8b5cf6)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 'bold', color: 'white', fontSize: '12px'
-                        }}>
-                            {isAcademic ? currentStepIndex + 1 : currentStepDynamic.id}
-                        </div>
-                        <p style={{ margin: 0, fontSize: '13px', color: '#d1d5db', lineHeight: '1.5' }}>
-                            {isAcademic ? step?.message : currentStepDynamic.description}
-                        </p>
-                    </div>
-
-                    {/* Verification Feedback Modal */}
-                    {isAcademic && verificationFeedback && (
-                        <div style={{
-                            padding: '10px 12px',
+                            background: 'rgba(0,0,0,0.2)',
                             borderRadius: '8px',
-                            background: verificationFeedback.success ? 'rgba(52, 211, 153, 0.1)' : 'rgba(248, 113, 113, 0.1)',
-                            border: verificationFeedback.success ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(248, 113, 113, 0.3)',
+                            padding: '12px',
+                            flex: 1,
+                            overflowY: 'auto'
+                        }} className="custom-scrollbar">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                                <div style={{
+                                    width: '24px', height: '24px', borderRadius: '50%', background: '#3b82f6',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', fontSize: '10px'
+                                }}>
+                                    {currentStepData.id}
+                                </div>
+                                <h4 style={{ margin: 0, fontSize: '14px', color: '#fff' }}>{currentStepData.title}</h4>
+                            </div>
+                            <div
+                                style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}
+                                dangerouslySetInnerHTML={{ __html: currentStepData.academicContent?.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/`(.*?)`/g, '<code style="background: rgba(139, 92, 246, 0.2); padding: 2px 4px; border-radius: 4px; color: #a78bfa;">$1</code>') || '' }}
+                            />
+                        </div>
+                    ) : (
+                        <div style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            background: 'rgba(0,0,0,0.2)',
+                            borderRadius: '8px',
+                            padding: '10px',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }}>
-                            {verificationFeedback.success ? <Check size={16} color="#34d399" /> : <X size={16} color="#f87171" />}
-                            <span style={{ fontSize: '12px', color: verificationFeedback.success ? '#34d399' : '#f87171' }}>
-                                {verificationFeedback.msg}
-                            </span>
+                            flexDirection: 'column',
+                            gap: '10px'
+                        }} className="custom-scrollbar">
+                            {chatHistory.length === 0 && <p style={{ color: '#666', textAlign: 'center', marginTop: '100px' }}>¿Dudas? Pregúntame.</p>}
+                            {chatHistory.map((msg, i) => (
+                                <div key={i} style={{
+                                    alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                                    maxWidth: '85%',
+                                    padding: '8px 12px',
+                                    borderRadius: '12px',
+                                    background: msg.role === 'user' ? '#3b82f6' : '#252536',
+                                    color: 'white',
+                                    fontSize: '12px',
+                                    border: '1px solid rgba(255,255,255,0.05)'
+                                }}>
+                                    {msg.content}
+                                </div>
+                            ))}
+                            {isChatLoading && <Loader2 size={14} className="animate-spin" color="#3b82f6" />}
+                            <div ref={chatEndRef} />
                         </div>
                     )}
 
-                    {/* Acciones */}
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                        {isAcademic && (!verificationFeedback || !verificationFeedback.success) && (
+                    {/* INTERFACE DE NAVEGACIÓN Y ACCIÓN */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                        {showInstructions && currentStepData.template && (
                             <button
-                                onClick={handleVerify}
+                                onClick={onLoadTemplate}
                                 style={{
-                                    flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: '#3b82f6', color: 'white',
-                                    cursor: 'pointer', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                                    width: '100%',
+                                    background: 'rgba(59, 130, 246, 0.15)',
+                                    border: '1px solid #3b82f6',
+                                    borderRadius: '6px',
+                                    padding: '10px',
+                                    color: '#60a5fa',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    marginBottom: '4px'
                                 }}
                             >
-                                Verificar Código
+                                <Sparkles size={14} /> CARGAR ARCHIVOS BASE
                             </button>
                         )}
 
-                        {isAcademic && verificationFeedback?.success && currentStepIndex < MENTOR_STEPS.length - 1 && (
-                            <button
-                                onClick={handleNext}
-                                style={{
-                                    flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: '#10b981', color: 'white',
-                                    cursor: 'pointer', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
-                                }}
-                            >
-                                Siguiente Paso <ChevronRight size={14} />
-                            </button>
-                        )}
-
-                        {isAcademic && verificationFeedback?.success && currentStepIndex === MENTOR_STEPS.length - 1 && (
-                            <div style={{ flex: 1, textAlign: 'center', fontSize: '13px', color: '#10b981', fontWeight: 'bold' }}>
-                                ¡Has completado este módulo! 🎉
-                            </div>
-                        )}
-                        
-                        {!isAcademic && (
-                            <div style={{ flex: 1, textAlign: 'center', fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
-                                💡 Usa el panel de Tutor IA.
+                        {!showInstructions ? (
+                            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '6px' }}>
+                                <input
+                                    type="text"
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    placeholder="Escribe tu duda..."
+                                    style={{ flex: 1, background: '#1e1e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px', color: 'white', fontSize: '13px' }}
+                                />
+                                <button type="submit" style={{ background: '#3b82f6', border: 'none', borderRadius: '6px', padding: '8px 12px' }}><Send size={14} color="white" /></button>
+                            </form>
+                        ) : (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button onClick={onPrevStep} style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '6px', padding: '8px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronLeft size={16} /></button>
+                                <button
+                                    onClick={onCompleteStep}
+                                    style={{
+                                        flex: 4,
+                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        fontSize: '12px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <Check size={16} /> LECCIÓN COMPLETADA
+                                </button>
+                                <button onClick={onNextStep} style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '6px', padding: '8px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={16} /></button>
                             </div>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* Resize Handle */}
+            {!minimized && (
+                <div
+                    onPointerDown={handleResizeDown}
+                    onPointerUp={handlePointerUp}
+                    style={{
+                        position: 'absolute',
+                        right: '1px',
+                        bottom: '1px',
+                        width: '15px',
+                        height: '15px',
+                        cursor: 'nwse-resize',
+                        zIndex: 10,
+                        opacity: 0.5
+                    }}
+                >
+                    <div style={{ width: '100%', height: '100%', borderRight: '2px solid white', borderBottom: '2px solid white' }} />
                 </div>
             )}
         </div>

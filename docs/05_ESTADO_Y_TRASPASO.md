@@ -1,24 +1,24 @@
 # 05 - ESTADO Y TRASPASO
 
 ## Última Actualización
-- **Fecha:** 2026-05-25
-- **Hora:** 11:00 AM
-- **PC:** Casa
+- **Fecha:** 2026-05-29
+- **Hora:** 03:25 PM
+- **PC:** Trabajo
 - **Agente:** Antigravity
 
 ## Estado Actual
 - **Infraestructura**: Next.js 16.2.6, Tailwind 4.3.0, TypeScript.
-- **Módulo 1**: Funcional al 100%. 
-  - Editor Monaco configurado.
-  - Preview en vivo con iframe y RetroGrid.
-  - Sidebar con Meteors y 4 pasos académicos.
-  - TutorPanel con integración a Groq (Llama 3.3).
-- **UI/UX**: Estética premium aplicada usando activos de `uix_and_designs`.
+- **Módulo "Estudia para prueba"**: Implementado y funcional.
+  - Activos cargados en `public/img/perro-waton`.
+  - Nueva ruta `studyRuta.ts` añadida.
+  - Mentor IA configurado con personalidad "Senior Instructor".
+  - Editor Monaco mejorado con `colorDecorators`.
+- **UI/UX**: Mejorada la navegación entre tracks académicos, externos y de estudio.
 
 ## Pendientes Inmediatos
-1. **Prueba de Usuario**: Verificar el flujo de los 4 pasos.
-2. **Refinamiento de Tutor**: Ajustar el prompt del sistema en `groqClient.ts` según el feedback de las primeras consultas.
-3. **Módulo 2**: Planificar la siguiente fase (posiblemente Flexbox/Grid avanzado o React Hooks).
+1. **Continuar Reto**: Añadir más pasos a `studyRuta.ts` (nosotros, niveles, beneficios).
+2. **Refinar Mentor**: Validar el tono del Mentor Senior con pruebas reales.
+3. **Módulo 2**: Retomar la planificación de Flexbox/Grid avanzado.
 
 ## Contexto para el Siguiente Turno
 - La API Key de Groq debe configurarse en `.env.local` como `NEXT_PUBLIC_GROQ_API_KEY`.

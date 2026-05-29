@@ -3,34 +3,19 @@
 import React, { useEffect, useState } from 'react';
 
 interface PreviewPaneProps {
-    code: string;
+    compiledHtml: string;
 }
 
-export default function PreviewPane({ code }: PreviewPaneProps) {
+export default function PreviewPane({ compiledHtml }: PreviewPaneProps) {
     const [srcDoc, setSrcDoc] = useState('');
 
     useEffect(() => {
+        // Debounce para evitar recargas constantes durante el tipeo
         const timer = setTimeout(() => {
-            setSrcDoc(`<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #fff;
-      color: #1a1a1a;
-    }
-  </style>
-</head>
-<body>${code}</body>
-</html>`);
+            setSrcDoc(compiledHtml);
         }, 300);
         return () => clearTimeout(timer);
-    }, [code]);
+    }, [compiledHtml]);
 
     return (
         <div style={{
@@ -40,34 +25,46 @@ export default function PreviewPane({ code }: PreviewPaneProps) {
             overflow: 'hidden',
             background: '#ffffff',
         }}>
-            {/* Header estilo macOS */}
+            {/* Header estilo navegador minimalista */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '0 16px',
-                height: '36px',
-                background: '#f3f4f6',
+                height: '35px',
+                background: '#f8f9fa',
                 borderBottom: '1px solid #e5e7eb',
                 flexShrink: 0,
             }}>
-                {/* Botones macOS */}
                 <div style={{ display: 'flex', gap: '6px' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#fc5c65' }} />
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#fed330' }} />
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#26de81' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ff5f56' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ffbd2e' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#27c93f' }} />
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginLeft: '8px' }}>
-                    Vista Previa en Vivo
-                </span>
+                <div style={{
+                    marginLeft: '12px',
+                    flex: 1,
+                    height: '22px',
+                    background: '#fff',
+                    borderRadius: '4px',
+                    border: '1px solid #ddd',
+                    fontSize: '10px',
+                    color: '#999',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0 8px'
+                }}>
+                    localhost:3000/preview
+                </div>
             </div>
 
-            {/* iframe — ocupa todo el espacio restante */}
             <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
                 <iframe
                     srcDoc={srcDoc}
                     title="Vista previa en vivo"
-                    sandbox="allow-scripts"
+                    onLoad={() => {
+                        // Opcional: inyectar JS si es necesario
+                    }}
                     style={{
                         position: 'absolute',
                         inset: 0,
