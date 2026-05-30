@@ -228,10 +228,36 @@ export default function Home() {
     }
 
     // Inyectar el JS de los archivos adicionales automáticamente
+    const baseScript = `
+      document.addEventListener('click', function(e) {
+        const a = e.target.closest('a');
+        if (a) {
+          const href = a.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            e.preventDefault();
+            const targetId = href.substring(1);
+            if (!targetId) return;
+            const elem = document.getElementById(targetId);
+            if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            e.preventDefault();
+            console.warn('Navegación bloqueada por seguridad en la vista previa.');
+          }
+        }
+      });
+    `;
+
     if (jsFiles.length > 0) {
       const combinedJs = jsFiles.map(f => f.content).join('\n');
-      const scriptTag = `<script>\n${combinedJs}\n</script>`;
+      const scriptTag = `<script>\n${baseScript}\n${combinedJs}\n</script>`;
 
+      if (htmlContent.includes('</body>')) {
+        htmlContent = htmlContent.replace('</body>', `${scriptTag}\n</body>`);
+      } else {
+        htmlContent += `\n${scriptTag}`;
+      }
+    } else {
+      const scriptTag = `<script>\n${baseScript}\n</script>`;
       if (htmlContent.includes('</body>')) {
         htmlContent = htmlContent.replace('</body>', `${scriptTag}\n</body>`);
       } else {
