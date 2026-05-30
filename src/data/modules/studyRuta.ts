@@ -5,13 +5,13 @@ const HTML_BASE = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perro Waton Learning</title>
+  <title>ExcelPro Academy - Cursos de Excel</title>
 </head>
 <body>
 
 <header>
   <nav>
-    <div class="logo">Perro Waton</div>
+    <div class="logo">ExcelPro Academy</div>
     <ul>
       <li><a href="#inicio">Inicio</a></li>
       <li><a href="#nosotros">Nosotros</a></li>
@@ -24,7 +24,7 @@ const HTML_BASE = `<!DOCTYPE html>
 
 <section class="hero" id="inicio">
   <div class="hero-content">
-    <h1>Aprende a ser un perro gordo desde Cero hasta Avanzado</h1>
+    <h1>Aprende Excel desde Cero hasta Avanzado</h1>
     <p>Capacítate con cursos prácticos de Excel y mejora tus habilidades laborales.</p>
     <a href="#cursos" class="btn">Ver Cursos</a>
   </div>
@@ -37,11 +37,11 @@ const HTML_BASE = `<!DOCTYPE html>
   </div>
   <div class="about">
     <div>
-      <img src="img/perro waton triste.jpg" alt="Equipo">
+      <img src="img/fondo.jpg" alt="Equipo ExcelPro">
     </div>
     <div>
       <h3>Formación práctica y profesional</h3>
-      <p>Ayudamos a estudiantes y empresas a dominar Excel mediante cursos modernos.</p>
+      <p>Ayudamos a estudiantes y empresas a dominar Excel mediante cursos modernos y eficientes.</p>
     </div>
   </div>
 </section>
@@ -93,9 +93,9 @@ const HTML_BASE = `<!DOCTYPE html>
     </div>
     <div class="form-group">
       <label>Mensaje</label>
-      <textarea placeholder="Escribe tu mensaje" required></textarea>
+      <textarea placeholder="Escribe tu consulta sobre los cursos" required></textarea>
     </div>
-    <button type="submit">Enviar</button>
+    <button type="submit">Enviar Consulta</button>
   </form>
 </section>
 
