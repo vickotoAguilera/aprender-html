@@ -14,6 +14,7 @@ interface FloatingMentorProps {
     onCompleteStep: () => void;
     onLoadTemplate?: () => void;
     currentStepData: Step;
+    currentCode: string;
 }
 
 interface ChatMessage {
@@ -28,7 +29,8 @@ export function FloatingMentor({
     onPrevStep,
     onCompleteStep,
     onLoadTemplate,
-    currentStepData
+    currentStepData,
+    currentCode
 }: FloatingMentorProps) {
     // Estado de UI
     const [minimized, setMinimized] = useState(false);
@@ -41,6 +43,14 @@ export function FloatingMentor({
     const [chatInput, setChatInput] = useState('');
     const [isChatLoading, setIsChatLoading] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
+
+    // Estado Verificación
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isApproved, setIsApproved] = useState(false);
+
+    useEffect(() => {
+        setIsApproved(false);
+    }, [currentStepId]);
 
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -108,12 +118,45 @@ export function FloatingMentor({
         setIsChatLoading(true);
 
         try {
-            const response = await chatWithMentor(newHistory, "Contexto activo", currentTrack);
+            const response = await chatWithMentor(newHistory, currentCode, currentTrack);
             setChatHistory([...newHistory, { role: 'assistant', content: response }]);
         } catch (err) {
             console.error(err);
         } finally {
             setIsChatLoading(false);
+        }
+    };
+
+    const handleVerify = async () => {
+        setIsVerifying(true);
+        try {
+            const prompt = `Actúa como verificador estricto. El alumno intenta completar la misión: "${currentStepData.title}".
+Revisa el siguiente código:
+${currentCode}
+
+Verifica si el alumno ha cumplido con los siguientes requisitos del paso:
+${currentStepData.academicContent?.substring(0, 1000)}
+
+Reglas de respuesta:
+1. Si cumple ABSOLUTAMENTE con el objetivo del paso de forma funcional (ignora pequeños errores estéticos si lo central está logrado), responde SOLO con la palabra: APROBADO
+2. Si le falta algo crítico, comete un error grave de sintaxis o no hizo lo que se pide, responde con una explicación breve de por qué falló en máximo 3 líneas. NUNCA escribas APROBADO si falla.`;
+
+            const response = await chatWithMentor([{ role: 'user', content: prompt }], currentCode, currentTrack);
+
+            if (response.trim().toUpperCase().includes('APROBADO')) {
+                setIsApproved(true);
+                setChatHistory(prev => [...prev, { role: 'assistant', content: "🎉 ¡Excelente! He verificado tu código y cumple con todos los objetivos del paso. Ya puedes avanzar a la siguiente lección." }]);
+                setShowInstructions(false);
+            } else {
+                setIsApproved(false);
+                setChatHistory(prev => [...prev, { role: 'assistant', content: "🔍 Revisión de Código:\n\n" + response }]);
+                setShowInstructions(false);
+            }
+        } catch (err) {
+            console.error("Error al verificar:", err);
+            setChatHistory(prev => [...prev, { role: 'assistant', content: "Hubo un error al verificar tu código. Por favor inténtalo de nuevo." }]);
+        } finally {
+            setIsVerifying(false);
         }
     };
 
@@ -285,25 +328,52 @@ export function FloatingMentor({
                         ) : (
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <button onClick={onPrevStep} style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '6px', padding: '8px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronLeft size={16} /></button>
-                                <button
-                                    onClick={onCompleteStep}
-                                    style={{
-                                        flex: 4,
-                                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                                        border: 'none',
-                                        borderRadius: '6px',
-                                        color: 'white',
-                                        fontWeight: 600,
-                                        fontSize: '12px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '6px'
-                                    }}
-                                >
-                                    <Check size={16} /> LECCIÓN COMPLETADA
-                                </button>
+
+                                {!isApproved ? (
+                                    <button
+                                        onClick={handleVerify}
+                                        disabled={isVerifying}
+                                        style={{
+                                            flex: 4,
+                                            background: isVerifying ? 'rgba(59,130,246,0.3)' : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            color: 'white',
+                                            fontWeight: 600,
+                                            fontSize: '12px',
+                                            cursor: isVerifying ? 'not-allowed' : 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px',
+                                            opacity: isVerifying ? 0.7 : 1
+                                        }}
+                                    >
+                                        {isVerifying ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                        {isVerifying ? 'VERIFICANDO...' : 'VERIFICAR CÓDIGO'}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={onCompleteStep}
+                                        style={{
+                                            flex: 4,
+                                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            color: 'white',
+                                            fontWeight: 600,
+                                            fontSize: '12px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        <Check size={16} /> PASAR AL SIGUIENTE
+                                    </button>
+                                )}
+
                                 <button onClick={onNextStep} style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '6px', padding: '8px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={16} /></button>
                             </div>
                         )}

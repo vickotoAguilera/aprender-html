@@ -434,6 +434,7 @@ export default function Home() {
         onCompleteStep={() => handleStepComplete(currentStepId)}
         onLoadTemplate={() => handleLoadTemplate(currentStepId)}
         currentStepData={currentStep}
+        currentCode={compiledHtml}
       />
     </div>
   );
