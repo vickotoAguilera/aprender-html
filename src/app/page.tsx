@@ -435,6 +435,7 @@ export default function Home() {
         onLoadTemplate={() => handleLoadTemplate(currentStepId)}
         currentStepData={currentStep}
         currentFiles={files}
+        onUpdateFiles={setFiles}
       />
     </div>
   );

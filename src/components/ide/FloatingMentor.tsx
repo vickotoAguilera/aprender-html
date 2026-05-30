@@ -15,6 +15,7 @@ interface FloatingMentorProps {
     onLoadTemplate?: () => void;
     currentStepData: Step;
     currentFiles: UserFile[];
+    onUpdateFiles?: (files: UserFile[]) => void;
 }
 
 interface ChatMessage {
@@ -30,7 +31,8 @@ export function FloatingMentor({
     onCompleteStep,
     onLoadTemplate,
     currentStepData,
-    currentFiles
+    currentFiles,
+    onUpdateFiles
 }: FloatingMentorProps) {
     // Estado de UI
     const [minimized, setMinimized] = useState(false);
@@ -142,14 +144,48 @@ Verifica si el alumno ha cumplido con los siguientes requisitos del paso:
 ${currentStepData.academicContent?.substring(0, 1000)}
 
 Reglas de respuesta:
-1. Si cumple ABSOLUTAMENTE con el objetivo de la lección (creó los nombres de archivos correctos si se pidieron y escribió el código), responde SOLO con la palabra: APROBADO
-2. Si le falta algo crítico, le falta un archivo clave, o hay error, responde con una explicación breve de por qué falló en máximo 3 líneas. NUNCA escribas APROBADO si falla.`;
+1. Si le falta algo crítico, le falta un archivo clave, o hay error: responde con una explicación breve de por qué falló en máximo 3 líneas. NO escribas APROBADO.
+2. Si cumple ABSOLUTAMENTE con el objetivo de la lección: 
+   - Tu respuesta DEBE comenzar exactamente con la palabra: APROBADO
+   - Inmediatamente debajo, devuelve TODO el archivo Modificado insertando comentarios educativos super breves (/* apunte */ o <!-- apunte -->) explicando lo que el alumno acaba de lograr en las líneas clave.
+   - Usa EXACTAMENTE este formato para los archivos:
+
+:::ARCHIVO: nombre_archivo.ext:::
+[codigo completo con tus apuntes educativos añadidos]
+:::FIN_ARCHIVO:::`;
 
             const response = await chatWithMentor([{ role: 'user', content: prompt }], fileStates, currentTrack);
 
-            if (response.trim().toUpperCase().includes('APROBADO')) {
+            if (response.trim().toUpperCase().startsWith('APROBADO')) {
+                // Parse AI modified files with comments
+                const fileBlocks = response.split(':::ARCHIVO:');
+                let nextFiles = [...currentFiles];
+                let modifiedAny = false;
+
+                for (let i = 1; i < fileBlocks.length; i++) {
+                    const block = fileBlocks[i];
+                    const endNameIdx = block.indexOf(':::');
+                    if (endNameIdx > -1) {
+                        const filename = block.substring(0, endNameIdx).trim();
+                        const contentStart = endNameIdx + 3;
+                        const finIdx = block.indexOf(':::FIN_ARCHIVO:::');
+                        if (finIdx > contentStart) {
+                            const newContent = block.substring(contentStart, finIdx).trim();
+                            const idx = nextFiles.findIndex(f => f.name === filename);
+                            if (idx !== -1) {
+                                nextFiles[idx] = { ...nextFiles[idx], content: newContent };
+                                modifiedAny = true;
+                            }
+                        }
+                    }
+                }
+
+                if (modifiedAny && onUpdateFiles) {
+                    onUpdateFiles(nextFiles);
+                }
+
                 setIsApproved(true);
-                setChatHistory(prev => [...prev, { role: 'assistant', content: "🎉 ¡Excelente! He verificado tu código y cumple con todos los objetivos del paso. Ya puedes avanzar a la siguiente lección." }]);
+                setChatHistory(prev => [...prev, { role: 'assistant', content: "🎉 ¡Excelente! He verificado tu código y he añadido algunos apuntes educativos en tus archivos para que recuerdes qué hicimos. Ya puedes avanzar a la siguiente lección." }]);
                 setShowInstructions(false);
             } else {
                 setIsApproved(false);
