@@ -5,14 +5,13 @@ const HTML_BASE = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ExcelPro Academy - Cursos de Excel</title>
-  
+  <title>Perro Waton Learning</title>
 </head>
 <body>
 
 <header>
   <nav>
-    <div class="logo">ExcelPro Academy</div>
+    <div class="logo">Perro Waton</div>
     <ul>
       <li><a href="#inicio">Inicio</a></li>
       <li><a href="#nosotros">Nosotros</a></li>
@@ -25,7 +24,7 @@ const HTML_BASE = `<!DOCTYPE html>
 
 <section class="hero" id="inicio">
   <div class="hero-content">
-    <h1>Aprende Excel de Cero a Avanzado</h1>
+    <h1>Aprende a ser un perro gordo desde Cero hasta Avanzado</h1>
     <p>Capacítate con cursos prácticos de Excel y mejora tus habilidades laborales.</p>
     <a href="#cursos" class="btn">Ver Cursos</a>
   </div>
@@ -37,36 +36,71 @@ const HTML_BASE = `<!DOCTYPE html>
     <p>Especialistas en formación tecnológica.</p>
   </div>
   <div class="about">
-    <div class="about-img">
-      <img src="img/fondo.jpg" alt="ExcelPro">
+    <div>
+      <img src="img/perro waton triste.jpg" alt="Equipo">
     </div>
-    <div class="about-text">
+    <div>
       <h3>Formación práctica y profesional</h3>
-      <p>Ayudamos a estudiantes a dominar Excel.</p>
+      <p>Ayudamos a estudiantes y empresas a dominar Excel mediante cursos modernos.</p>
     </div>
   </div>
 </section>
 
-<section id="cursos" class="benefits">
+<section class="courses" id="cursos">
   <div class="section-title">
-    <h2>Cursos y Beneficios</h2>
+    <h2>Niveles de Cursos</h2>
+    <p>Elige el nivel que mejor se adapte a ti.</p>
   </div>
   <div class="course-grid">
-    <div class="course-card">Nivel Básico</div>
-    <div class="course-card">Macros y VBA</div>
+    <div class="course-card">
+      <h3>Excel Básico</h3>
+      <ul><li>Interfaz de Excel</li><li>Fórmulas básicas</li><li>Tablas</li></ul>
+    </div>
+    <div class="course-card">
+      <h3>Excel Intermedio</h3>
+      <ul><li>Funciones lógicas</li><li>Gráficos</li><li>Filtros</li></ul>
+    </div>
+    <div class="course-card">
+      <h3>Excel Avanzado</h3>
+      <ul><li>Macros y VBA</li><li>Power Query</li><li>Dashboards</li></ul>
+    </div>
   </div>
 </section>
 
-<section id="contacto">
-  <div class="contact-form">
-    <div class="form-group"><input type="text" placeholder="Nombre"></div>
-    <div class="form-group"><textarea placeholder="Mensaje"></textarea></div>
-    <button>Enviar</button>
+<section class="benefits" id="beneficios">
+  <div class="section-title">
+    <h2>Beneficios</h2>
   </div>
+  <div class="benefits-grid">
+    <div class="benefit-box"><h3>100% Práctico</h3><p>Aprende resolviendo ejercicios reales.</p></div>
+    <div class="benefit-box"><h3>Certificación</h3><p>Obtén diploma al finalizar.</p></div>
+    <div class="benefit-box"><h3>Clases Online</h3><p>Accede desde cualquier lugar.</p></div>
+  </div>
+</section>
+
+<section class="contact" id="contacto">
+  <div class="section-title">
+    <h2>Contáctanos</h2>
+  </div>
+  <form class="contact-form">
+    <div class="form-group">
+      <label>Nombre</label>
+      <input type="text" placeholder="Tu nombre" required>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" placeholder="correo@ejemplo.com" required>
+    </div>
+    <div class="form-group">
+      <label>Mensaje</label>
+      <textarea placeholder="Escribe tu mensaje" required></textarea>
+    </div>
+    <button type="submit">Enviar</button>
+  </form>
 </section>
 
 <footer>
-  <p>© 2026 ExcelPro</p>
+  <p>© 2026 ExcelPro Academy</p>
 </footer>
 
 </body>
@@ -207,20 +241,20 @@ section { padding: 90px 8%; }
   },
   {
     id: 7,
-    title: 'Tarjetas de Cursos y Sombras',
-    description: 'Cajas decorativas y sombras (box-shadow).',
-    academicContent: `Vamos a diseñar las cajas de información que dan vida al proyecto.
+    title: 'Tarjetas de Cursos y Beneficios',
+    description: 'Cajas decorativas, sombras y grillas dinámicas.',
+    academicContent: `Vamos a diseñar las cajas de información que dan vida a los cursos y beneficios.
 
-Agrega estos selectores:
+Agrega estos selectores agrupados:
 \`\`\`css
 .benefits { background: #0f172a; color: white; }
 
-.course-grid {
+.course-grid, .benefits-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 25px;
 }
-.course-card {
+.course-card, .benefit-box {
     background-color: rgb(158, 134, 221);
     padding: 30px;
     border-radius: 12px;
