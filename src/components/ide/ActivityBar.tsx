@@ -116,7 +116,7 @@ export function ExplorerPane({
         } else if (val.includes(' ')) {
             setValidationTip({ type: 'error', msg: 'Tip: No uses espacios, usa guiones (ej. mi-archivo.html).' });
         } else if (!val.includes('.')) {
-            setValidationTip({ type: 'error', msg: 'Añade una extensión (ej. .html, .css).' });
+            setValidationTip({ type: 'error', msg: 'Añade una extensión (ej. .html, .css). Puedes usar / para carpetas (ej. css/estilos.css).' });
         } else {
             setValidationTip({ type: 'success', msg: '¡Excelente formato de nombre!' });
         }

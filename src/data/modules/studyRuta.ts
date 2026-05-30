@@ -11,17 +11,17 @@ Ya tienes el HTML listo (el que nos mandó el profe). Ahora tu misión es darle 
 
 **Pasos a seguir:**
 1. En el Explorador a la izquierda, pulsa el icono **"+" (Nuevo Archivo)**.
-2. Crea una carpeta llamada **css** y dentro un archivo llamado **styles.css**.
-3. Asegúrate de que en tu HTML (línea 7) esté este código: \`<link rel="stylesheet" href="css/styles.css">\`.
+2. Crea una carpeta llamada **css** y dentro un archivo llamado **styles.css** (Escribe \`css/styles.css\` en la cajita).
+3. Asegúrate de agregar en tu HTML (cerca de la línea 7) este código: \`<link rel="stylesheet" href="css/styles.css">\`.
 
-Una vez tengas el archivo creado, ¡escríbeme en el chat si tienes dudas de cómo empezar!`,
+Una vez tengas el archivo creado y enlazado, pulsa **VERIFICAR CÓDIGO**.`,
     template: `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ExcelPro Academy - Cursos de Excel</title>
-  <link rel="stylesheet" href="css/styles.css">
+  
 </head>
 <body>
 
@@ -67,21 +67,7 @@ Una vez tengas el archivo creado, ¡escríbeme en el chat si tienes dudas de có
 </footer>
 
 </body>
-</html>`,
-    additionalFiles: [
-      {
-        name: 'css/styles.css',
-        language: 'css',
-        content: `/* 
-  ¡Bienvenido a tu primer archivo de estilos! 
-  Aquí empezarás a escribir el código para darle vida a la página.
-  
-  Pista: Empieza por el reset con '*' para quitar los márgenes por defecto.
-*/
-
-`
-      }
-    ]
+</html>`
   },
   {
     id: 2,

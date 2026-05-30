@@ -14,7 +14,7 @@ interface FloatingMentorProps {
     onCompleteStep: () => void;
     onLoadTemplate?: () => void;
     currentStepData: Step;
-    currentCode: string;
+    currentFiles: UserFile[];
 }
 
 interface ChatMessage {
@@ -30,7 +30,7 @@ export function FloatingMentor({
     onCompleteStep,
     onLoadTemplate,
     currentStepData,
-    currentCode
+    currentFiles
 }: FloatingMentorProps) {
     // Estado de UI
     const [minimized, setMinimized] = useState(false);
@@ -117,8 +117,10 @@ export function FloatingMentor({
         setChatHistory(newHistory);
         setIsChatLoading(true);
 
+        const fileStates = currentFiles.map(f => `--- ARCHIVO: ${f.name} ---\n${f.type === 'image' ? '[IMAGEN BASE64]' : f.content}`).join('\n\n');
+
         try {
-            const response = await chatWithMentor(newHistory, currentCode, currentTrack);
+            const response = await chatWithMentor(newHistory, fileStates, currentTrack);
             setChatHistory([...newHistory, { role: 'assistant', content: response }]);
         } catch (err) {
             console.error(err);
@@ -129,19 +131,21 @@ export function FloatingMentor({
 
     const handleVerify = async () => {
         setIsVerifying(true);
+        const fileStates = currentFiles.map(f => `--- ARCHIVO: ${f.name} ---\n${f.type === 'image' ? '[IMAGEN BASE64]' : f.content}`).join('\n\n');
+
         try {
             const prompt = `Actúa como verificador estricto. El alumno intenta completar la misión: "${currentStepData.title}".
-Revisa el siguiente código:
-${currentCode}
+Revisa la estructura de archivos y su código actual:
+${fileStates}
 
 Verifica si el alumno ha cumplido con los siguientes requisitos del paso:
 ${currentStepData.academicContent?.substring(0, 1000)}
 
 Reglas de respuesta:
-1. Si cumple ABSOLUTAMENTE con el objetivo del paso de forma funcional (ignora pequeños errores estéticos si lo central está logrado), responde SOLO con la palabra: APROBADO
-2. Si le falta algo crítico, comete un error grave de sintaxis o no hizo lo que se pide, responde con una explicación breve de por qué falló en máximo 3 líneas. NUNCA escribas APROBADO si falla.`;
+1. Si cumple ABSOLUTAMENTE con el objetivo de la lección (creó los nombres de archivos correctos si se pidieron y escribió el código), responde SOLO con la palabra: APROBADO
+2. Si le falta algo crítico, le falta un archivo clave, o hay error, responde con una explicación breve de por qué falló en máximo 3 líneas. NUNCA escribas APROBADO si falla.`;
 
-            const response = await chatWithMentor([{ role: 'user', content: prompt }], currentCode, currentTrack);
+            const response = await chatWithMentor([{ role: 'user', content: prompt }], fileStates, currentTrack);
 
             if (response.trim().toUpperCase().includes('APROBADO')) {
                 setIsApproved(true);
