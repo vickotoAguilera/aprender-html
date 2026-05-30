@@ -361,7 +361,7 @@ export default function Home() {
             })}
           </div>
 
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             {activeFile ? (
               activeFile.type === 'image' ? (
                 <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
