@@ -293,7 +293,14 @@ Reglas de respuesta:
                             </div>
                             <div
                                 style={{ fontSize: '13px', color: '#d1d5db', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}
-                                dangerouslySetInnerHTML={{ __html: currentStepData.academicContent?.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/`(.*?)`/g, '<code style="background: rgba(139, 92, 246, 0.2); padding: 2px 4px; border-radius: 4px; color: #a78bfa;">$1</code>') || '' }}
+                                dangerouslySetInnerHTML={{
+                                    __html: (currentStepData.academicContent || '')
+                                        .replace(/</g, '&lt;')
+                                        .replace(/>/g, '&gt;')
+                                        .replace(/```[a-z]*\n([\s\S]*?)```/g, '<pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; overflow-x: auto; font-family: monospace; color: #e5e7eb; margin: 8px 0;"><code>$1</code></pre>')
+                                        .replace(/`([^`]+)`/g, '<code style="background: rgba(139, 92, 246, 0.2); padding: 2px 4px; border-radius: 4px; color: #a78bfa;">$1</code>')
+                                        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                                }}
                             />
                         </div>
                     ) : (
